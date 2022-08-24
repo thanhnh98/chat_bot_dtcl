@@ -1,9 +1,11 @@
 package tlife.bot.dtcl.chat_bot
 
+import com.google.gson.Gson
 import dev.inmo.tgbotapi.bot.ktor.telegramBot
 import dev.inmo.tgbotapi.extensions.api.bot.getMe
 import dev.inmo.tgbotapi.extensions.api.chat.get.getChat
 import dev.inmo.tgbotapi.extensions.api.send.media.sendPhoto
+import dev.inmo.tgbotapi.extensions.api.send.sendMessage
 import dev.inmo.tgbotapi.extensions.api.send.sendTextMessage
 import dev.inmo.tgbotapi.extensions.behaviour_builder.BehaviourContext
 import dev.inmo.tgbotapi.extensions.behaviour_builder.buildBehaviourWithLongPolling
@@ -17,16 +19,16 @@ import dev.inmo.tgbotapi.types.chat.UsernameChat
 import dev.inmo.tgbotapi.types.message.abstracts.CommonMessage
 import dev.inmo.tgbotapi.types.message.content.TextContent
 import dev.inmo.tgbotapi.utils.RiskFeature
-import tlife.bot.dtcl.isPausedBot
 import tlife.bot.dtcl.model.command.CommandAction
 import tlife.bot.dtcl.model.command.CommandModel
 import tlife.bot.dtcl.model.command.CommandModel.Companion.getCommandByString
 import tlife.bot.dtcl.model.say_hi.SayHiReplyText
 import tlife.bot.dtcl.model.say_hi.sayHiTemplate
+import tlife.bot.dtcl.utils.containEx
 
 class DtclChatBot(
     private val botToken: String
-) {
+): BotAction by BotActionImpl() {
     private val token = botToken
     suspend fun setupBot(){
         val bot = telegramBot(token)
@@ -35,13 +37,10 @@ class DtclChatBot(
             println("Ready: $botInfo")
             onText {
                 val chatChannel = this.getChat(it.chat)
-                if (!isPausedBot) {
-                    println("text coming from ${chatChannel.id}")
-                    val message = it
-                    val bc = this
-                    it.chat.whenUsernameChat { user ->
-                        doOnText(bc, message, user, chatChannel is ExtendedSupergroupChatImpl)
-                    }
+                val message = it
+                val bc = this
+                it.chat.whenUsernameChat { user ->
+                    doOnText(bc, message, user, chatChannel is ExtendedSupergroupChatImpl)
                 }
             }
         }
@@ -54,13 +53,13 @@ class DtclChatBot(
         user: UsernameChat,
         isSupperChannel: Boolean
     ) {
-        val bot = bc.bot
         val keyString = message.text?:""
-        val fullName = " ${message.from?.firstName} ${message.from?.lastName}"
+        val fullName = "${message.from?.firstName} ${message.from?.lastName}"
         val chatId = message.chat.id
+//        println("text coming from ${Gson().toJson(message.from)}")
         when {
             sayHiTemplate.any { sayHi ->
-                keyString?.lowercase() == sayHi.lowercase()
+                keyString.containEx(sayHi)
             } -> {
                 bc.sendTextMessage(
                     chatId,
@@ -70,7 +69,7 @@ class DtclChatBot(
             }
             getCommandByString(keyString) != null -> {
                 val command = getCommandByString(keyString)!!
-                doActionByCommand(bc, chatId, command)
+                doActionByCommand(fullName, bc, chatId, command, message)
             }
             else -> {
 
@@ -78,19 +77,16 @@ class DtclChatBot(
         }
     }
 
-    private suspend fun doActionByCommand(bc: BehaviourContext, chatId: ChatId, command: CommandModel) {
+    private suspend fun doActionByCommand(fullNameSender: String, bc: BehaviourContext, chatId: ChatId, command: CommandModel, message: CommonMessage<TextContent>) {
         val action = command.commandAction
         when(action){
-           is CommandAction.MusicAction -> {
-               bc.sendTextMessage(
-                   chatId,
-                   action.url
-               )
-           }
-        }
-    }
+            is CommandAction.MusicAction -> {
+                onMusicAction(fullNameSender, bc, message, chatId, action)
+            }
 
-    fun isValidCommand(command: String): Boolean {
-        return command == "dtcl"
+            is CommandAction.PlayGameAction -> {
+                onPlayAlertAction(fullNameSender, bc, message, chatId, action)
+            }
+        }
     }
 }

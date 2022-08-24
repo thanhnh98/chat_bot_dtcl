@@ -8,8 +8,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import tlife.bot.dtcl.chat_bot.DtclChatBot
 
-var isPausedBot = false
-
 fun main() {
     embeddedServer(Netty, port = 8080, "127.0.0.1") {
         module()
@@ -18,19 +16,28 @@ fun main() {
 
 @Suppress("unused") // Referenced in application.conf
 fun Application.module(testing: Boolean = false) {
-
-    CoroutineScope(coroutineContext).launch {
+    val jobBot = CoroutineScope(coroutineContext).launch {
         DtclChatBot(
             "5646290360:AAH-OEQtIwhDSKu-Fs0F7U33Edk3krUMyYU"
         ).setupBot()
     }
+
     routing {
         get("/"){
-            call.respond("Hi there")
+            call.respond("Hi, I'm Cóc Đại Ka. Developed by @thanhnh")
         }
-        get("/pause"){
-            isPausedBot = !isPausedBot
-            call.respond("Is paused: $isPausedBot")
+        get("/stop"){
+            if (jobBot.isActive){
+                jobBot.cancel()
+            }
+            call.respond("Stopped job at ${System.currentTimeMillis()}")
+        }
+        get("/restart"){
+            if (jobBot.isActive){
+                jobBot.cancel()
+            }
+            jobBot.join()
+            call.respond("Restarted job at ${System.currentTimeMillis()}")
         }
     }
 }

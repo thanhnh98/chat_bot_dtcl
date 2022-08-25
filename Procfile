@@ -1,1 +1,1 @@
-web: build/install/kotlinserver/bin/kotlinserver
+web: ./build/install/dtcl-chat-bot/bin/dtcl-chat-bot

@@ -8,10 +8,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import tlife.bot.dtcl.chat_bot.DtclChatBot
 
-val port = System.getenv("PORT")?.toInt() ?: 23567
+val port = System.getenv("PORT")?.toInt() ?: 8080
 
 fun main() {
     embeddedServer(Netty, port) {
+        println("Listening on port $port")
         module()
     }.start(wait = true)
 }

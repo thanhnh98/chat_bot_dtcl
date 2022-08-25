@@ -13,12 +13,14 @@ import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onText
 import dev.inmo.tgbotapi.extensions.utils.extensions.raw.from
 import dev.inmo.tgbotapi.extensions.utils.extensions.raw.text
 import dev.inmo.tgbotapi.extensions.utils.whenUsernameChat
+import dev.inmo.tgbotapi.requests.abstracts.InputFile
 import dev.inmo.tgbotapi.types.ChatId
 import dev.inmo.tgbotapi.types.chat.ExtendedSupergroupChatImpl
 import dev.inmo.tgbotapi.types.chat.UsernameChat
 import dev.inmo.tgbotapi.types.message.abstracts.CommonMessage
 import dev.inmo.tgbotapi.types.message.content.TextContent
 import dev.inmo.tgbotapi.utils.RiskFeature
+import tlife.bot.dtcl.constant.ImageUrl
 import tlife.bot.dtcl.model.command.CommandAction
 import tlife.bot.dtcl.model.command.CommandModel
 import tlife.bot.dtcl.model.command.CommandModel.Companion.getCommandByString
@@ -40,7 +42,11 @@ class DtclChatBot(
                 val message = it
                 val bc = this
                 it.chat.whenUsernameChat { user ->
-                    doOnText(bc, message, user, chatChannel is ExtendedSupergroupChatImpl)
+                    val messageWhen = message.date.unixMillisLong
+                    val currentTime = System.currentTimeMillis()
+                    if (currentTime - messageWhen < 10000){
+                        doOnText(bc, message, user, chatChannel is ExtendedSupergroupChatImpl)
+                    }
                 }
             }
         }
@@ -58,6 +64,12 @@ class DtclChatBot(
         val chatId = message.chat.id
 //        println("text coming from ${Gson().toJson(message.from)}")
         when {
+            keyString == "spoon" -> {
+                bc.sendPhoto(
+                    chatId,
+                    InputFile.fromUrl(ImageUrl.spoon)
+                )
+            }
             sayHiTemplate.any { sayHi ->
                 keyString.containEx(sayHi)
             } -> {

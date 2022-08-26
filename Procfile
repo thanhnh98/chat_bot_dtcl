@@ -1,1 +1,1 @@
-web: ./build/install/dtcl/dtcl
+web: ./build/install/dtcl/bin/dtcl

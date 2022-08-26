@@ -36,7 +36,6 @@ class DtclChatBot(
         val bot = telegramBot(token)
         bot.buildBehaviourWithLongPolling {
             val botInfo = getMe()
-            println("Ready: $botInfo")
             onText {
                 val chatChannel = this.getChat(it.chat)
                 val message = it

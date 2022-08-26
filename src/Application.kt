@@ -10,35 +10,29 @@ import tlife.bot.dtcl.chat_bot.DtclChatBot
 
 
 fun main() {
-    embeddedServer(Netty, port =System.getenv("PORT")?.toInt() ?: 8080) {
+    val port = System.getenv("PORT")?.toInt() ?: 8080
+    val host = "127.0.0.1"
+    embeddedServer(Netty, port = port , host = host) {
         module()
     }.start(wait = true)
 }
 
 @Suppress("unused") // Referenced in application.conf
 fun Application.module() {
-    val jobBot = CoroutineScope(coroutineContext).launch {
-        DtclChatBot(
-            "5646290360:AAH-OEQtIwhDSKu-Fs0F7U33Edk3krUMyYU"
-        ).setupBot()
-    }
-
     routing {
         get("/"){
             call.respond("Hi, I'm Cóc Đại Ka. Developed by @thanhnh")
         }
         get("/stop"){
-            if (jobBot.isActive){
-                jobBot.cancel()
-            }
             call.respond("Stopped job at ${System.currentTimeMillis()}")
         }
-        get("/restart"){
-            if (jobBot.isActive){
-                jobBot.cancel()
+        get("/start"){
+            CoroutineScope(coroutineContext).launch {
+                DtclChatBot(
+                    "5646290360:AAH-OEQtIwhDSKu-Fs0F7U33Edk3krUMyYU"
+                ).setupBot()
             }
-            jobBot.join()
-            call.respond("Restarted job at ${System.currentTimeMillis()}")
+            call.respond("started job at ${System.currentTimeMillis()}")
         }
     }
 }

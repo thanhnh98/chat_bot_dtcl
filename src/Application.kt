@@ -16,7 +16,7 @@ fun main() {
 }
 
 @Suppress("unused") // Referenced in application.conf
-fun Application.module(testing: Boolean = false) {
+fun Application.module() {
     val jobBot = CoroutineScope(coroutineContext).launch {
         DtclChatBot(
             "5646290360:AAH-OEQtIwhDSKu-Fs0F7U33Edk3krUMyYU"

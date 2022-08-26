@@ -1,1 +1,1 @@
-web: ./build/install/dtcl-chat-bot/bin/dtcl-chat-bot
+web: ./build/install/chat_bot_dtcl/bin/chat_bot_dtcl
